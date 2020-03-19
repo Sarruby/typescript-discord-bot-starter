@@ -4,7 +4,9 @@
   "description": "The ping-pong bot created by the instructions at <README.md>.",
   "main": "build/index.js",
   "scripts": {
-    "test": "echo ''\u001b[DTODO(M): figure out test command'"
+    "start": "node src/index.js",
+    "watch": "tsc -p tsconfig.json -w",
+    "test": "mocha -r ts-node/register \"tests/**/*.spec.ts\""
   },
   "repository": {
     "type": "git",

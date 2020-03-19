@@ -1,0 +1,27 @@
+{
+  "name": "typescript-discord-bot-starter",
+  "version": "1.0.0",
+  "description": "The ping-pong bot created by the instructions at <README.md>.",
+  "main": "build/index.js",
+  "scripts": {
+    "test": "echo ''\u001b[DTODO(M): figure out test command'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sarruby/typescript-discord-bot-starter.git"
+  },
+  "keywords": [
+    "discord",
+    "starter",
+    "bot",
+    "chatbot",
+    "discord.js",
+    "node"
+  ],
+  "author": "M",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Sarruby/typescript-discord-bot-starter/issues"
+  },
+  "homepage": "https://github.com/Sarruby/typescript-discord-bot-starter#readme"
+}

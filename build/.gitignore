@@ -1,2 +1,7 @@
 *
 !.gitignore
+
+# When the tsc command is run (npm run watch or build),
+# typescript emits many Javascript files (and maps too).
+# I prefer to not see them in the same directories they
+# came from.

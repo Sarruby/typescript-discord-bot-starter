@@ -18,8 +18,8 @@ container.bind<string | undefined>(TYPES.Token).toConstantValue(
     process.env.TOKEN);
 
 container.bind<MessageHandler>(TYPES.MessageHandler).to(MessageHandler)
-  .inSingletonScope();
+    .inSingletonScope();
 container.bind<PingCommand>(TYPES.PingCommand).to(PingCommand)
-  .inSingletonScope();
+    .inSingletonScope();
 
 export default container;

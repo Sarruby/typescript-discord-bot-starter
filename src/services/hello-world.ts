@@ -1,4 +1,4 @@
-import {Message} from 'discord.js';  // eslint-disable-line no-unused-vars
+import {Message} from 'discord.js'; // eslint-disable-line no-unused-vars
 
 /**
  * Installs the listeners

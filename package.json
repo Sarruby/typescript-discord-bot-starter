@@ -4,7 +4,7 @@
   "description": "The ping-pong bot created by the instructions at <README.md>.",
   "main": "build/index.js",
   "scripts": {
-    "start": "node build/src/index.js",
+    "start": "tsc -p tsconfig.json && node build/src/index.js",
     "lint": "eslint src --ext ts",
     "fix": "eslint src --ext ts --fix",
     "watch": "tsc -p tsconfig.json -w",

@@ -13,6 +13,7 @@ export class MessageHandler {
 
   /**
     * Installs the listeners
+    * @param {Client} client - Discord client.
     * @param {PingCommand} pingCommand - PingCommand listener.
     */
   constructor(
@@ -26,11 +27,11 @@ export class MessageHandler {
   /**
     * Handles new messages.
     * @param {Message} message - The message to handle.
-    * @return { boolean>} - Is it valid?
+    * @return { boolean} - Is it valid?
     */
   isValidMessage(message: Message): boolean {
     if (message.author.bot == true) {
-        return false;
+      return false;
     }
     return true;
   }
@@ -41,7 +42,9 @@ export class MessageHandler {
     * @return { Promise<Message | Message[]>} - Whatever the handler gives back.
     */
   handle(message: Message): Promise<Message | Message[]> {
-    if (!this.isValidMessage(message)) {return Promise.reject(message);}
+    if (!this.isValidMessage(message)) {
+      return Promise.reject(message);
+    }
 
     if (this.pingCommand.isCommandCalled(message)) {
       return this.pingCommand.doCommand(message);

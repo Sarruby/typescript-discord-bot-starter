@@ -4,7 +4,7 @@ import {expect} from 'chai';
 import {PingCommand} from "../../src/services/message-commands/ping";
 import {MessageHandler} from "../../src/services/message-handler";
 import {instance, mock, verify, when} from "ts-mockito";
-import {Message, Client} from "discord.js";
+import {Message, Client, User} from "discord.js";
 
 describe('MessageHandler', () => {
   let mockedClientClass: Client;
@@ -13,6 +13,8 @@ describe('MessageHandler', () => {
   let mockedPingCommandInstance: PingCommand;
   let mockedMessageClass: Message;
   let mockedMessageInstance: Message;
+  let mockedAuthorUserClass: User;
+  let mockedAuthorUserInstance: User;
 
   let service: MessageHandler;
 
@@ -23,11 +25,15 @@ describe('MessageHandler', () => {
     mockedPingCommandInstance = instance(mockedPingCommandClass);
     mockedMessageClass = mock(Message);
     mockedMessageInstance = instance(mockedMessageClass);
+    mockedAuthorUserClass = mock(User);
+    mockedAuthorUserInstance = instance(mockedAuthorUserClass);
+    mockedMessageInstance.author = mockedAuthorUserInstance;
 
     service = new MessageHandler(mockedClientInstance, mockedPingCommandInstance);
   })
 
   it('should reply', async () => {
+    makeValidMessage();
     when(mockedPingCommandClass.isCommandCalled(mockedMessageInstance))
       .thenReturn(true);
 
@@ -36,7 +42,23 @@ describe('MessageHandler', () => {
     verify(mockedPingCommandClass.doCommand(mockedMessageInstance)).once();
   })
 
-  it('should not reply', async () => {
+  it('should not reply to bot', async () => {
+    mockedAuthorUserInstance.bot = true;
+    mockedMessageClass.author = mockedAuthorUserInstance;
+    when(mockedPingCommandClass.isCommandCalled(mockedMessageInstance))
+      .thenReturn(true);
+
+    await service.handle(mockedMessageInstance).then(() => {
+      // Successful promise is unexpected, so we fail the test
+      expect.fail('Unexpected promise');
+    }).catch(() => {
+    // Rejected promise is expected, so nothing happens here
+    });
+
+    verify(mockedPingCommandClass.doCommand(mockedMessageInstance)).never();
+  })
+
+  it('should not activate command when isCommandCalled is false', async () => {
     when(mockedPingCommandClass.isCommandCalled(mockedMessageInstance))
       .thenReturn(false);
 
@@ -49,4 +71,8 @@ describe('MessageHandler', () => {
 
     verify(mockedPingCommandClass.doCommand(mockedMessageInstance)).never();
   })
+
+  function makeValidMessage() {
+    mockedAuthorUserInstance.bot = false;
+  }
 });

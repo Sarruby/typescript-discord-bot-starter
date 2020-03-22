@@ -26,9 +26,23 @@ export class MessageHandler {
   /**
     * Handles new messages.
     * @param {Message} message - The message to handle.
+    * @return { boolean>} - Is it valid?
+    */
+  isValidMessage(message: Message): boolean {
+    if (message.author.bot == true) {
+        return false;
+    }
+    return true;
+  }
+
+  /**
+    * Handles new messages.
+    * @param {Message} message - The message to handle.
     * @return { Promise<Message | Message[]>} - Whatever the handler gives back.
     */
   handle(message: Message): Promise<Message | Message[]> {
+    if (!this.isValidMessage(message)) {return Promise.reject(message);}
+
     if (this.pingCommand.isCommandCalled(message)) {
       return this.pingCommand.doCommand(message);
     }

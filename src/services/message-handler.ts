@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import {Message} from 'discord.js';
+import {Message, Client} from 'discord.js';
 // eslint-disable-next-line no-unused-vars
 import {PingCommand} from './message-commands/ping';
 import {inject, injectable} from 'inversify';
@@ -8,6 +8,7 @@ import {TYPES} from '../types';
 @injectable()
 /** Handles messages. Consists of a bunch of installed commands/listeners. */
 export class MessageHandler {
+  private client: Client;
   private pingCommand: PingCommand;
 
   /**
@@ -15,9 +16,11 @@ export class MessageHandler {
     * @param {PingCommand} pingCommand - PingCommand listener.
     */
   constructor(
+    @inject(TYPES.Client) client: Client,
     @inject(TYPES.PingCommand) pingCommand: PingCommand,
   ) {
     this.pingCommand = pingCommand;
+    this.client = client;
   }
 
   /**

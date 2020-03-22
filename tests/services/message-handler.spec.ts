@@ -4,9 +4,11 @@ import {expect} from 'chai';
 import {PingCommand} from "../../src/services/message-commands/ping";
 import {MessageHandler} from "../../src/services/message-handler";
 import {instance, mock, verify, when} from "ts-mockito";
-import {Message} from "discord.js";
+import {Message, Client} from "discord.js";
 
 describe('MessageHandler', () => {
+  let mockedClientClass: Client;
+  let mockedClientInstance: Client;
   let mockedPingCommandClass: PingCommand;
   let mockedPingCommandInstance: PingCommand;
   let mockedMessageClass: Message;
@@ -15,12 +17,14 @@ describe('MessageHandler', () => {
   let service: MessageHandler;
 
   beforeEach(() => {
+    mockedClientClass = mock(Client);
+    mockedClientInstance = instance(mockedClientClass);
     mockedPingCommandClass = mock(PingCommand);
     mockedPingCommandInstance = instance(mockedPingCommandClass);
     mockedMessageClass = mock(Message);
     mockedMessageInstance = instance(mockedMessageClass);
 
-    service = new MessageHandler(mockedPingCommandInstance);
+    service = new MessageHandler(mockedClientInstance, mockedPingCommandInstance);
   })
 
   it('should reply', async () => {

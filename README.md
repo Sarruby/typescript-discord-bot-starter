@@ -44,6 +44,7 @@ Here are package.json's scripts (run with `npm run <script>`):
 *   `clean`: delete node_modules/ and build/ contents. You must `npm install` after using this command.
 *   `build`: compile the typescript.
 *   `test`: run unit tests under tests/.
+*   `presubmit`: lint + partial clean + build + test.
 
 ### Adding features
 

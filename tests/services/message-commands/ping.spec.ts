@@ -80,4 +80,20 @@ describe('PingFinder', () => {
         // TODO(M): Consider requiring exact string.
         verify(mockedMessageClass.reply(anyString())).once();
       });
+
+
+  it('doCommand: for message "ping a lot of words to parse"' +
+  ': replies with parse error',
+  async () => {
+    mockedMessageInstance.content = 'ping a lot of words to parse';
+    mockedAuthorUserInstance.username = 'username';
+
+    when(mockedMessageClass.reply(mockedMessageInstance))
+        .thenResolve(mockedMessageInstance);
+
+    await pingCommand.doCommand(mockedMessageInstance);
+
+    // TODO(M): Consider requiring exact string.
+    verify(mockedMessageClass.reply(anyString())).once();
+  });
 });

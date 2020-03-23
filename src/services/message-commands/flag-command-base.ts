@@ -3,8 +3,8 @@ import {Client, Message} from 'discord.js';
 // eslint-disable-next-line no-unused-vars
 import commandLineArgs, {OptionDefinition, CommandLineOptions}
   from 'command-line-args';
-import {injectable, inject} from 'inversify';
-import {TYPES} from '../../types';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../../types';
 
 
 export enum CommandDetection {
@@ -17,10 +17,22 @@ export enum CommandDetection {
 /** PingFinder. */
 export abstract class FlagCommandBase {
   discordClient:Client;
+
+  // The command to be typed in. e.g. "ping"
   abstract commandString:string;
+
+  // If the flag takes options, specify here. e.g. {name: "flag"}
+  // See documentation:
+  // https://github.com/75lb/command-line-args/blob/master/doc/option-definition.md
   abstract flagOptions:OptionDefinition[];
+
+  // In the event of user error/an unparseable string, an error message.
+  // Note: since we use typescript, we can't use command-line-usage as
+  // we cannot add field 'description' to flagOptions. :-(
   abstract usage:string;
-  abstract maxFlagsPossible:number;
+
+  // Throws an error to reply with usage message.
+  // This should do whatever is needed. Like, reply, ping, react, delete, etc.
   abstract completeParsedCommand(
     message: Message, options:CommandLineOptions): Promise<Message | Message[]>;
 
@@ -49,26 +61,25 @@ export abstract class FlagCommandBase {
     * @return {Promise<Message | Message[]>} - Replied message(s).
     */
   doCommand(message: Message): Promise<Message | Message[]> {
-    if (message.content == null) {
-      return Promise.reject(new Error('Null content for message!'));
-    }
+    if (message.content == null)
+      {return Promise.reject(new Error('Null content for message!'));}
 
     let messageArgv:string[] = message.content.split(
-        ' ', this.maxFlagsPossible + 10);
-    const indexOfCommand = messageArgv.findIndex((word) => {
+      ' ', this.flagOptions.length*2 + 1);
+    let indexOfCommand = messageArgv.findIndex((word) => {
       return word ==this.commandString;
     });
     messageArgv = messageArgv.slice(indexOfCommand+1);
 
     let parsedFlags:CommandLineOptions;
     try {
-      parsedFlags = commandLineArgs(this.flagOptions, {argv: messageArgv});
+      parsedFlags  = commandLineArgs(this.flagOptions, {argv: messageArgv});
       return this.completeParsedCommand(message, parsedFlags);
     } catch (e) {
       // Note: typescript does not allow us to add "description" to our
       // option definitions since the field is not present in the class.
       // Thus, we cannot use command-line-usage.
-      const errorAndUsage =
+      let errorAndUsage =
         'BeEP bOoP ErRor!' +
         '\n\nCould complete `' + this.commandString + '` command.' +
         '\n\nUser: ' + message.author.username +

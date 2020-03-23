@@ -8,6 +8,7 @@
     "lint": "eslint src --ext ts",
     "fix": "eslint src --ext ts --fix",
     "watch": "tsc -p tsconfig.json -w",
+    "clean": "rm -rf ./build/src/* ./build/tests/* ./node_modules/*",
     "build": "tsc -p tsconfig.json",
     "test": "mocha -r ts-node/register \"tests/**/*.spec.ts\""
   },

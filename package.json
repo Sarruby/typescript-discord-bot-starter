@@ -5,8 +5,8 @@
   "main": "build/index.js",
   "scripts": {
     "start": "tsc -p tsconfig.json && node build/src/index.js",
-    "lint": "eslint src --ext ts",
-    "fix": "eslint src --ext ts --fix",
+    "lint": "eslint src tests --ext ts",
+    "fix": "eslint src tests --ext ts --fix",
     "watch": "tsc -p tsconfig.json -w",
     "clean": "rm -rf ./build/src/* ./build/tests/* ./node_modules/*",
     "build": "tsc -p tsconfig.json",

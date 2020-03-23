@@ -1,8 +1,8 @@
-import "reflect-metadata";
+import 'reflect-metadata';
 import 'mocha';
-import {helloWorldResponder} from "../../src/services/hello-world";
-import {instance, mock, verify} from "ts-mockito";
-import {Message} from "discord.js";
+import {helloWorldResponder} from '../../src/services/hello-world';
+import {instance, mock, verify} from 'ts-mockito';
+import {Message} from 'discord.js';
 
 describe('helloWorldResponder', () => {
   let mockedMessageClass: Message;
@@ -16,14 +16,14 @@ describe('helloWorldResponder', () => {
     setMessageContents();
 
     responder = new helloWorldResponder();
-  })
+  });
 
   it('replies hello world', async () => {
     await responder.helloWorldEcho(mockedMessageInstance);
     verify(mockedMessageClass.reply('Hello world!')).once();
-  })
+  });
 
   function setMessageContents() {
-    mockedMessageInstance.content = "message content";
+    mockedMessageInstance.content = 'message content';
   }
 });

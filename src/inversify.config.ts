@@ -9,6 +9,7 @@ import {Client} from 'discord.js';
 import {Bot} from './bot';
 import {MessageHandler} from './services/message-handler';
 import {PingCommand} from './services/message-commands/ping';
+import {EraseCommand} from './services/message-commands/erase';
 
 const container = new Container();
 
@@ -20,6 +21,8 @@ container.bind<string | undefined>(TYPES.Token).toConstantValue(
 container.bind<MessageHandler>(TYPES.MessageHandler).to(MessageHandler)
     .inSingletonScope();
 container.bind<PingCommand>(TYPES.PingCommand).to(PingCommand)
+    .inSingletonScope();
+container.bind<EraseCommand>(TYPES.EraseCommand).to(EraseCommand)
     .inSingletonScope();
 
 export default container;

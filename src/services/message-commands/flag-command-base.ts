@@ -65,10 +65,12 @@ export abstract class FlagCommandBase {
       parsedFlags = commandLineArgs(this.flagOptions, {argv: messageArgv});
       return this.completeParsedCommand(message, parsedFlags);
     } catch (e) {
+      // Note: typescript does not allow us to add "description" to our
+      // option definitions since the field is not present in the class.
+      // Thus, we cannot use command-line-usage.
       const errorAndUsage =
         'BeEP bOoP ErRor!' +
-        '\n\nCould not parse flags for `' +
-          this.commandString + '` command.' +
+        '\n\nCould complete `' + this.commandString + '` command.' +
         '\n\nUser: ' + message.author.username +
         '\nMessage:\n```\n' + message.content + '\n```' +
         '\n\nUsage:\n' + this.usage;

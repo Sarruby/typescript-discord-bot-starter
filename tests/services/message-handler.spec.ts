@@ -69,7 +69,11 @@ describe('MessageHandler', () => {
     mockedMessageMentionsInstance.users = mentionedUsers;
 
     messageHandler = new MessageHandler(
-        mockedClientInstance, mockedPingCommandInstance);
+        mockedClientInstance,
+        mockedPingCommandInstance,
+        // We don't check the actual commands in these tests, so we can
+        // inject the same mock.
+        mockedPingCommandInstance);
   });
 
   it('for valid message: calls doCommand', async () => {

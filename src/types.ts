@@ -7,4 +7,5 @@ export const TYPES = {
 
   MessageHandler: Symbol('MessageHandler'),
   PingCommand: Symbol('PingCommand'),
+  EraseCommand: Symbol('EraseCommand'),
 };

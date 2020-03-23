@@ -1,27 +1,30 @@
 // eslint-disable-next-line no-unused-vars
 import {Message, Client, TextChannel} from 'discord.js';
 // eslint-disable-next-line no-unused-vars
-import {PingCommand} from './message-commands/ping';
 import {inject, injectable} from 'inversify';
 import {TYPES} from '../types';
-import {CommandDetection} from './message-commands/flag-command-base';
+// eslint-disable-next-line no-unused-vars
+import {CommandDetection, FlagCommandBase}
+  from './message-commands/flag-command-base';
 
 @injectable()
 /** Handles messages. Consists of a bunch of installed commands/listeners. */
 export class MessageHandler {
   private client: Client;
-  private pingCommand: PingCommand;
+  private commands: FlagCommandBase[];
 
   /**
     * Installs the listeners
     * @param {Client} client - Discord client.
-    * @param {PingCommand} pingCommand - PingCommand listener.
+    * @param {FlagCommandBase} pingCommand - ping
+    * @param {FlagCommandBase} eraseCommand - erase
     */
   constructor(
     @inject(TYPES.Client) client: Client,
-    @inject(TYPES.PingCommand) pingCommand: PingCommand,
+    @inject(TYPES.PingCommand) pingCommand: FlagCommandBase,
+    @inject(TYPES.EraseCommand) eraseCommand: FlagCommandBase,
   ) {
-    this.pingCommand = pingCommand;
+    this.commands = [pingCommand, eraseCommand];
     this.client = client;
   }
 
@@ -99,9 +102,11 @@ export class MessageHandler {
       return validityCheck.promise;
     }
 
-    if (this.pingCommand.isCommandCalled(message) ==
-        CommandDetection.COMMAND_CALLED) {
-      return this.pingCommand.doCommand(message);
+    for (const command of this.commands) {
+      if (command.isCommandCalled(message) ==
+          CommandDetection.COMMAND_CALLED) {
+        return command.doCommand(message);
+      }
     }
 
     return message.reply('Unknown command! TODO(M) Make list.');

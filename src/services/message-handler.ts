@@ -4,6 +4,7 @@ import {Message, Client, TextChannel} from 'discord.js';
 import {PingCommand} from './message-commands/ping';
 import {inject, injectable} from 'inversify';
 import {TYPES} from '../types';
+import {CommandDetection} from './message-commands/flag-command-base';
 
 @injectable()
 /** Handles messages. Consists of a bunch of installed commands/listeners. */
@@ -98,7 +99,8 @@ export class MessageHandler {
       return validityCheck.promise;
     }
 
-    if (this.pingCommand.isCommandCalled(message)) {
+    if (this.pingCommand.isCommandCalled(message) ==
+        CommandDetection.COMMAND_CALLED) {
       return this.pingCommand.doCommand(message);
     }
 

@@ -5,10 +5,11 @@ import {PingCommand} from '../../src/services/message-commands/ping';
 import {MessageHandler} from '../../src/services/message-handler';
 import {instance, mock, verify, when, anything, anyString} from 'ts-mockito';
 
-// eslint-disable-next-line no-unused-vars
 import {Message, Client, ClientUser, TextChannel, DMChannel, MessageMentions,
 // eslint-disable-next-line no-unused-vars
   User, Collection} from 'discord.js';
+import {CommandDetection}
+  from '../../src/services/message-commands/flag-command-base';
 
 describe('MessageHandler', () => {
   let mockedClientClass: Client;
@@ -73,7 +74,7 @@ describe('MessageHandler', () => {
 
   it('for valid message: calls doCommand', async () => {
     when(mockedPingCommandClass.isCommandCalled(mockedMessageInstance))
-        .thenReturn(true);
+        .thenReturn(CommandDetection.COMMAND_CALLED);
 
     await messageHandler.handle(mockedMessageInstance);
 
@@ -151,7 +152,7 @@ describe('MessageHandler', () => {
   it('for message with no command otherwise valid: replies with error message',
       async () => {
         when(mockedPingCommandClass.isCommandCalled(mockedMessageInstance))
-            .thenReturn(false);
+            .thenReturn(CommandDetection.NOT_APPLICABLE);
 
         await messageHandler.handle(mockedMessageInstance);
 

@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import {Message, Client} from 'discord.js';
+import {Collection, Message, Client} from 'discord.js';
 import {FlagCommandBase} from './flag-command-base';
 // eslint-disable-next-line no-unused-vars
 import {OptionDefinition, CommandLineOptions} from 'command-line-args';
@@ -10,7 +10,7 @@ import {TYPES} from '../../types';
 /** PingFinder. */
 export class EraseCommand extends FlagCommandBase {
   flagOptions: OptionDefinition[] = [
-    {name: 'number'},
+    {name: 'number', type: Number},
   ];
   usage:string = 'erase --number (#). '+
     'Deletes messages.';
@@ -37,6 +37,16 @@ export class EraseCommand extends FlagCommandBase {
     if (options.number == null) {
       throw new Error();
     }
-    return message.reply('ERASE!' + options.number);
+    const numberToDelete = Number(options.number);
+    if (isNaN(numberToDelete)) {
+      throw new Error();
+    }
+    return message.channel.bulkDelete(numberToDelete)
+        .then((_value: Collection<string, Message>) => {
+          return Promise.resolve([]);
+        })
+        .catch((err:any) => {
+          return Promise.reject(err);
+        });
   }
 }

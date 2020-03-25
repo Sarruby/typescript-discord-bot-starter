@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import 'mocha';
 import {EraseCommand} from '../../../src/services/message-commands/erase';
-import {instance, mock, verify, when, anyString} from 'ts-mockito';
-import {Message, Client, ClientUser, TextChannel} from 'discord.js';
+import {instance, mock, verify, when, anyString, anything} from 'ts-mockito';
+import {Message, Client, ClientUser, TextChannel, Collection} from 'discord.js';
 
 describe('PingFinder', () => {
   let mockedClientClass: Client;
@@ -32,16 +32,31 @@ describe('PingFinder', () => {
     eraseCommand = new EraseCommand(mockedClientInstance);
   });
 
-  it('doCommand: for message "erase --number 3": replies "ERASE!3"',
+  it('doCommand: for message "erase --number 3": tries to erase 3',
       async () => {
         mockedMessageInstance.content = 'erase --number 3';
+
+        when(mockedTextChannelClass.bulkDelete(anything()))
+            .thenResolve(new Collection<string, Message>());
+
+        await eraseCommand.doCommand(mockedMessageInstance);
+
+        verify(mockedTextChannelClass.bulkDelete(3)).once();
+      });
+
+  it('doCommand: for message "erase --number tree": replies with parse error',
+      async () => {
+        mockedMessageInstance.content = 'erase --number tree';
 
         when(mockedMessageClass.reply(mockedMessageInstance))
             .thenResolve(mockedMessageInstance);
 
         await eraseCommand.doCommand(mockedMessageInstance);
 
-        verify(mockedMessageClass.reply('ERASE!3')).once();
+        // TODO(M): Consider requiring exact string.
+        verify(mockedMessageClass.reply(anyString())).once();
+
+        verify(mockedTextChannelClass.bulkDelete(anything())).never();
       });
 
 

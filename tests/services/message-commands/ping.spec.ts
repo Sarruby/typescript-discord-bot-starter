@@ -7,7 +7,7 @@ import {Message, Client, ClientUser, TextChannel} from 'discord.js';
 import {CommandDetection}
   from '../../../src/services/message-commands/flag-command-base';
 
-describe('PingFinder', () => {
+describe('PingCommand', () => {
   let mockedClientClass: Client;
   let mockedClientInstance: Client;
   let mockedMessageClass: Message;

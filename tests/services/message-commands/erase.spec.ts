@@ -59,12 +59,21 @@ describe('EraseCommand', () => {
 
 
   describe('Correct Usage + Successful API calls', () => {
+    beforeEach(() => {
+      when(mockedTextChannelClass.bulkDelete(anything()))
+          .thenResolve(new Collection<string, Message>());
+    });
+
+    afterEach(() => {
+      // Both the current channel and the guild channel are of this class,
+      // so this check checks both channels are never called.
+      verify(mockedTextChannelClass.bulkDelete(anything())).once();
+      verify(mockedMessageClass.reply(anyString())).never();
+    });
+
     it('"erase --number 3" => erases 3',
         async () => {
           mockedMessageInstance.content = 'erase --number 3';
-
-          when(mockedTextChannelClass.bulkDelete(anything()))
-              .thenResolve(new Collection<string, Message>());
 
           await eraseCommand.doCommand(mockedMessageInstance);
 
@@ -76,18 +85,13 @@ describe('EraseCommand', () => {
         async () => {
           mockedMessageInstance.content = 'erase --number 3 --channel general';
 
-          await eraseCommand.doCommand(mockedMessageInstance)
-              .then((_message:Message | Message[]) => {
-                expect.fail(); // Expecting a failure!
-              }).catch((error:any) => {
-                expect(error).is.not.null;
-                expect(error instanceof Error).is.true;
-              });
+          await eraseCommand.doCommand(mockedMessageInstance);
 
+          // TODO(M): Consider verifying this was the guild instance, not just
+          // the class function.
           verify(mockedTextChannelClass.bulkDelete(3)).once();
         });
   });
-
 
   describe('Incorrect Usage + Successful API calls', () => {
     beforeEach(() => {
@@ -154,4 +158,43 @@ describe('EraseCommand', () => {
           expect(replyMessage).to.contain('--channel requires you specify');
         });
   });
+
+
+    describe('Unsuccessful API calls', () => {
+      it('"erase --number 3" + bulkDelete error => Promise rejects with ' +
+      'error message',
+          async () => {
+            mockedAuthorUserInstance.username = 'username';
+            when(mockedTextChannelClass.bulkDelete(anything()))
+                .thenReject(new Error('Simulated Discord API Error'));
+
+            mockedMessageInstance.content = 'erase --number 3';
+
+            await eraseCommand.doCommand(mockedMessageInstance)
+            .catch((error:Error) => {
+              expect(error.message).contains('Simulated Discord API Error');
+            });
+
+            verify(mockedTextChannelClass.bulkDelete(3)).once();
+            verify(mockedMessageClass.reply(anyString())).never();
+          });
+
+      it('"erase --number tree" + reply error => Promise rejects with ' +
+      'error message',
+          async () => {
+            mockedAuthorUserInstance.username = 'username';
+            when(mockedMessageClass.reply(anything()))
+                .thenReject(new Error('Simulated Discord API Error'));
+
+            mockedMessageInstance.content = 'erase --number tree';
+
+            await eraseCommand.doCommand(mockedMessageInstance)
+            .catch((error:Error) => {
+              expect(error.message).contains('Simulated Discord API Error');
+            });
+
+            verify(mockedTextChannelClass.bulkDelete(anything())).never();
+            verify(mockedMessageClass.reply(anyString())).once();
+          });
+    });
 });

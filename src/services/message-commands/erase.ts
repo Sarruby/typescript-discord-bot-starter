@@ -118,8 +118,13 @@ export class EraseCommand extends FlagCommandBase {
         .then((_value: Collection<string, Message>) => {
           return Promise.resolve([]);
         })
-        .catch((err:any) => {
-          return Promise.reject(err);
+        .catch((error:Error) => {
+          return Promise.reject(new Error(
+            message.author.username +
+            ': <' +
+            message.content +
+            '>\n\n\nFailed to bulkDelete! Message:\n' +
+            error.message));
         });
   }
 }

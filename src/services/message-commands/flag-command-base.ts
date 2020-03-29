@@ -5,6 +5,7 @@ import commandLineArgs, {OptionDefinition, CommandLineOptions}
   from 'command-line-args';
 import {injectable, inject} from 'inversify';
 import {TYPES} from '../../types';
+import {FlagCommandError, FlagErrorType} from './flag-command-error';
 
 
 export enum CommandDetection {
@@ -57,6 +58,23 @@ export abstract class FlagCommandBase {
   }
 
   /**
+    * Composes a reply with error information. Wraps the specific error
+    * message inside of a cute reply that also contains information about the
+    * command. The specific error is bolded for clarity.
+    * @param {String} error - A specific error message for the user.
+    * @param {Message} message - The message to reply to.
+    * @return {string} - Whether the string was found.
+    */
+  private writeErrorMessage(error:String, message:Message): string {
+    return 'BeEP bOoP ErRor!' +
+    '\n\n**' + error + '**\n\n' +
+    '\n\nCould complete `' + this.commandString + '` command.' +
+    '\n\nUser: ' + message.author.username +
+    '\nMessage:\n```\n' + message.content + '\n```' +
+    '\n\nUsage:\n' + this.usage;
+  }
+
+  /**
     * @param {Message} message - The message to reply to.
     * @return {Promise<Message | Message[]>} - Replied message(s).
     */
@@ -75,18 +93,29 @@ export abstract class FlagCommandBase {
     let parsedFlags:CommandLineOptions;
     try {
       parsedFlags = commandLineArgs(this.flagOptions, {argv: messageArgv});
+    } catch (error) {
+      // This seems to be how the command-line-args library throws errors.
+      const errorAndUsage =
+      this.writeErrorMessage('Unable to parse flags! Check usage?', message);
+      return message.reply(errorAndUsage);
+    }
+    try {
       return this.completeParsedCommand(message, parsedFlags);
-    } catch (e) {
+    } catch (error) {
+      if (error == null ||
+        error == '' ||
+        !(error instanceof FlagCommandError)) {
+        return Promise.reject(new Error(message + '\n\n\n' + error));
+      }
       // Note: typescript does not allow us to add "description" to our
       // option definitions since the field is not present in the class.
       // Thus, we cannot use command-line-usage.
-      const errorAndUsage =
-        'BeEP bOoP ErRor!' +
-        '\n\nCould complete `' + this.commandString + '` command.' +
-        '\n\nUser: ' + message.author.username +
-        '\nMessage:\n```\n' + message.content + '\n```' +
-        '\n\nUsage:\n' + this.usage;
-      return message.reply(errorAndUsage);
+      if (error.flagErrorType == FlagErrorType.USER_ERROR) {
+        const errorAndUsage = this.writeErrorMessage(
+            error.userErrorMessage, message);
+        return message.reply(errorAndUsage);
+      }
+      return Promise.reject(new Error(message + '\n\n\n' + error));
     }
   }
 }

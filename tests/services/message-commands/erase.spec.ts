@@ -1,7 +1,8 @@
 import 'reflect-metadata';
 import 'mocha';
 import {EraseCommand} from '../../../src/services/message-commands/erase';
-import {instance, mock, verify, when, anyString, anything} from 'ts-mockito';
+import {instance, mock, verify, when, anyString, anything,
+  capture} from 'ts-mockito';
 import {Message, Client, ClientUser, TextChannel,
   // eslint-disable-next-line no-unused-vars
   Collection, Guild, GuildChannel, GuildChannelManager} from 'discord.js';
@@ -35,6 +36,8 @@ describe('EraseCommand', () => {
     mockedAuthorUserInstance.id = '111';
     mockedMessageInstance.author = mockedAuthorUserInstance;
     mockedTextChannelClass = mock(TextChannel);
+    when(mockedTextChannelClass.bulkDelete(3))
+        .thenResolve(new Collection<string, Message>());
     mockedTextChannelInstance = instance(mockedTextChannelClass);
     mockedMessageInstance.channel = mockedTextChannelInstance;
 
@@ -79,6 +82,9 @@ describe('EraseCommand', () => {
         verify(mockedMessageClass.reply(anyString())).once();
 
         verify(mockedTextChannelClass.bulkDelete(anything())).never();
+
+        const [replyMessage] = capture(mockedMessageClass.reply).last();
+        expect(replyMessage).to.contain('--number is not a number');
       });
 
 
@@ -92,8 +98,9 @@ describe('EraseCommand', () => {
 
         await eraseCommand.doCommand(mockedMessageInstance);
 
-        // TODO(M): Consider requiring exact string.
         verify(mockedMessageClass.reply(anyString())).once();
+        const [replyMessage] = capture(mockedMessageClass.reply).last();
+        expect(replyMessage).to.contain('Number to delete is required');
       });
 
   it('doCommand: for message "erase --number": replies with parse error',
@@ -106,8 +113,9 @@ describe('EraseCommand', () => {
 
         await eraseCommand.doCommand(mockedMessageInstance);
 
-        // TODO(M): Consider requiring exact string.
         verify(mockedMessageClass.reply(anyString())).once();
+        const [replyMessage] = capture(mockedMessageClass.reply).last();
+        expect(replyMessage).to.contain('Number to delete is required');
       });
 
 
@@ -115,9 +123,6 @@ describe('EraseCommand', () => {
   'erases 3 from general',
   async () => {
     mockedMessageInstance.content = 'erase --number 3 --channel general';
-
-    when(mockedTextChannelClass.bulkDelete(3))
-        .thenResolve(new Collection<string, Message>());
 
     await eraseCommand.doCommand(mockedMessageInstance)
         .then((_message:Message | Message[]) => {
@@ -127,7 +132,7 @@ describe('EraseCommand', () => {
           expect(error instanceof Error).is.true;
         });
 
-    verify(mockedTextChannelClass.bulkDelete(anything())).once();
+    verify(mockedTextChannelClass.bulkDelete(3)).once();
   });
 
   it('doCommand: for message "erase --number 3 --channel none":' +
@@ -140,9 +145,9 @@ describe('EraseCommand', () => {
 
     await eraseCommand.doCommand(mockedMessageInstance);
 
-    // TODO(M): Consider requiring exact string.
     verify(mockedMessageClass.reply(anyString())).once();
-
+    const [replyMessage] = capture(mockedMessageClass.reply).last();
+    expect(replyMessage).to.contain('Channel not found');
     verify(mockedTextChannelClass.bulkDelete(anything())).never();
   });
 
@@ -156,7 +161,8 @@ describe('EraseCommand', () => {
 
     await eraseCommand.doCommand(mockedMessageInstance);
 
-    // TODO(M): Consider requiring exact string.
     verify(mockedMessageClass.reply(anyString())).once();
+    const [replyMessage] = capture(mockedMessageClass.reply).last();
+    expect(replyMessage).to.contain('--channel requires you specify a channel');
   });
 });

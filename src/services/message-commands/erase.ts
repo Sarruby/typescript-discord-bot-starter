@@ -7,6 +7,7 @@ import {FlagCommandBase} from './flag-command-base';
 import {OptionDefinition, CommandLineOptions} from 'command-line-args';
 import {injectable, inject} from 'inversify';
 import {TYPES} from '../../types';
+import {FlagCommandError, FlagErrorType} from './flag-command-error';
 
 @injectable()
 /** PingFinder. */
@@ -37,7 +38,8 @@ export class EraseCommand extends FlagCommandBase {
   private parseNumber(optionsNumber:any): number {
     const numberToDelete = Number(optionsNumber);
     if (isNaN(numberToDelete)) {
-      throw new Error();
+      throw new FlagCommandError('--number is not a number!',
+          FlagErrorType.USER_ERROR);
     }
     return numberToDelete;
   }
@@ -52,16 +54,24 @@ export class EraseCommand extends FlagCommandBase {
   private parseChannel(optionsChannel:any,
       message:Message): TextChannel | DMChannel {
     const channelName:string = optionsChannel;
-    // null means the command did not have the flag.
+    // null means the command did not have the flag OR the flag had nothing
+    // after it. We have to check if the flag was added with no input, Like
+    // "erase --number 3 --channel".
     if (channelName == null) {
+      if (message.content.search('--channel') >= 0) {
+        throw new FlagCommandError('Using --channel requires you specify ' +
+        'a channel too!',
+        FlagErrorType.USER_ERROR);
+      }
       return message.channel;
     }
     if (channelName == '') {
-      throw new Error('You must specify a channel when using --channel.');
+      throw new FlagCommandError('Channel not specified!',
+          FlagErrorType.USER_ERROR);
     }
     const guild:Guild | null = message.guild;
     if (guild == null) {
-      throw new Error('BOT ERROR: no guild on this message, somehow!');
+      throw new FlagCommandError('No guild detected.', FlagErrorType.BOT_ERROR);
     }
     const channels:GuildChannelManager = guild.channels;
     const cache = channels.cache;
@@ -69,10 +79,12 @@ export class EraseCommand extends FlagCommandBase {
       return channel.name == channelName;
     });
     if (channelToDeleteFrom == null) {
-      throw new Error('Unable to find specified channel!');
+      throw new FlagCommandError('Channel not found!',
+          FlagErrorType.USER_ERROR);
     }
     if (!(typeof channelToDeleteFrom.bulkDelete == 'function')) {
-      throw new Error('BOT ERROR: channel lacks bulkDelete function?!');
+      throw new FlagCommandError('No bulkDelete function on channel!',
+          FlagErrorType.BOT_ERROR);
     }
     return channelToDeleteFrom;
   }
@@ -87,17 +99,19 @@ export class EraseCommand extends FlagCommandBase {
       message: Message,
       options: CommandLineOptions): Promise<Message | Message[]> {
     if (options.number == null) {
-      throw new Error();
+      throw new FlagCommandError('Number to delete is required.',
+          FlagErrorType.USER_ERROR);
     }
     const numberToDelete:number = this.parseNumber(options.number);
     const channelToDeleteFrom:TextChannel | DMChannel =
       this.parseChannel(options.channel, message);
     if (channelToDeleteFrom == null) {
       // Not found
-      throw new Error();
+      throw new FlagCommandError('Channel not found unexpectedly!',
+          FlagErrorType.BOT_ERROR);
     }
     if (!(typeof channelToDeleteFrom.bulkDelete == 'function')) {
-      throw new Error();
+      throw new FlagCommandError('Channel wrong!', FlagErrorType.BOT_ERROR);
     }
 
     return channelToDeleteFrom.bulkDelete(numberToDelete)

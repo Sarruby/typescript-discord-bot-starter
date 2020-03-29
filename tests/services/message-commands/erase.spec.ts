@@ -160,41 +160,41 @@ describe('EraseCommand', () => {
   });
 
 
-    describe('Unsuccessful API calls', () => {
-      it('"erase --number 3" + bulkDelete error => Promise rejects with ' +
+  describe('Unsuccessful API calls', () => {
+    it('"erase --number 3" + bulkDelete error => Promise rejects with ' +
       'error message',
-          async () => {
-            mockedAuthorUserInstance.username = 'username';
-            when(mockedTextChannelClass.bulkDelete(anything()))
-                .thenReject(new Error('Simulated Discord API Error'));
+    async () => {
+      mockedAuthorUserInstance.username = 'username';
+      when(mockedTextChannelClass.bulkDelete(anything()))
+          .thenReject(new Error('Simulated Discord API Error'));
 
-            mockedMessageInstance.content = 'erase --number 3';
+      mockedMessageInstance.content = 'erase --number 3';
 
-            await eraseCommand.doCommand(mockedMessageInstance)
-            .catch((error:Error) => {
-              expect(error.message).contains('Simulated Discord API Error');
-            });
-
-            verify(mockedTextChannelClass.bulkDelete(3)).once();
-            verify(mockedMessageClass.reply(anyString())).never();
+      await eraseCommand.doCommand(mockedMessageInstance)
+          .catch((error:Error) => {
+            expect(error.message).contains('Simulated Discord API Error');
           });
 
-      it('"erase --number tree" + reply error => Promise rejects with ' +
-      'error message',
-          async () => {
-            mockedAuthorUserInstance.username = 'username';
-            when(mockedMessageClass.reply(anything()))
-                .thenReject(new Error('Simulated Discord API Error'));
-
-            mockedMessageInstance.content = 'erase --number tree';
-
-            await eraseCommand.doCommand(mockedMessageInstance)
-            .catch((error:Error) => {
-              expect(error.message).contains('Simulated Discord API Error');
-            });
-
-            verify(mockedTextChannelClass.bulkDelete(anything())).never();
-            verify(mockedMessageClass.reply(anyString())).once();
-          });
+      verify(mockedTextChannelClass.bulkDelete(3)).once();
+      verify(mockedMessageClass.reply(anyString())).never();
     });
+
+    it('"erase --number tree" + reply error => Promise rejects with ' +
+      'error message',
+    async () => {
+      mockedAuthorUserInstance.username = 'username';
+      when(mockedMessageClass.reply(anything()))
+          .thenReject(new Error('Simulated Discord API Error'));
+
+      mockedMessageInstance.content = 'erase --number tree';
+
+      await eraseCommand.doCommand(mockedMessageInstance)
+          .catch((error:Error) => {
+            expect(error.message).contains('Simulated Discord API Error');
+          });
+
+      verify(mockedTextChannelClass.bulkDelete(anything())).never();
+      verify(mockedMessageClass.reply(anyString())).once();
+    });
+  });
 });

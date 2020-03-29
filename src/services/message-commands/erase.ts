@@ -120,7 +120,7 @@ export class EraseCommand extends FlagCommandBase {
         })
         .catch((error:Error) => {
           return Promise.reject(new Error(
-            message.author.username +
+              message.author.username +
             ': <' +
             message.content +
             '>\n\n\nFailed to bulkDelete! Message:\n' +

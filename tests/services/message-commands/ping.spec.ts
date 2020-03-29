@@ -2,7 +2,8 @@ import 'reflect-metadata';
 import 'mocha';
 import {expect} from 'chai';
 import {PingCommand} from '../../../src/services/message-commands/ping';
-import {instance, mock, verify, when, anything, anyString} from 'ts-mockito';
+import {instance, mock, verify, when, anything, anyString,
+  capture} from 'ts-mockito';
 import {Message, Client, ClientUser, TextChannel} from 'discord.js';
 import {CommandDetection}
   from '../../../src/services/message-commands/flag-command-base';
@@ -42,58 +43,63 @@ describe('PingCommand', () => {
         .equal(CommandDetection.COMMAND_CALLED);
   });
 
-  it('doCommand: for message "ping": replies "Pong!"', async () => {
-    mockedMessageInstance.content = 'ping';
+  describe('Correct Usage + Successful API calls', () => {
+    it('"ping" => replies "Pong!"', async () => {
+      mockedMessageInstance.content = 'ping';
 
-    when(mockedMessageClass.reply(mockedMessageInstance))
-        .thenResolve(mockedMessageInstance);
+      when(mockedMessageClass.reply(mockedMessageInstance))
+          .thenResolve(mockedMessageInstance);
 
-    await pingCommand.doCommand(mockedMessageInstance);
+      await pingCommand.doCommand(mockedMessageInstance);
 
-    verify(mockedMessageClass.reply('Pong!')).once();
+      verify(mockedMessageClass.reply('Pong!')).once();
+    });
+
+    it('"ping --user <@!333>" => replies "<@!333> Pong!"',
+        async () => {
+          mockedMessageInstance.content = 'ping --user <@!333>';
+
+          when(mockedTextChannelClass.send(anything()))
+              .thenResolve();
+
+          await pingCommand.doCommand(mockedMessageInstance);
+
+          verify(mockedTextChannelClass
+              .send('<@!333>, ping! From <@!111>')).once();
+        });
   });
+  describe('Incorrect Usage + Successful API calls', () => {
+    it('"ping --badflag" => error parsing',
+        async () => {
+          mockedMessageInstance.content = 'ping --badflag';
+          mockedAuthorUserInstance.username = 'username';
 
-  it('doCommand: for message "ping --user <@!333>": replies "<@!333> Pong!"',
-      async () => {
-        mockedMessageInstance.content = 'ping --user <@!333>';
+          when(mockedMessageClass.reply(mockedMessageInstance))
+              .thenResolve(mockedMessageInstance);
 
-        when(mockedTextChannelClass.send(anything()))
-            .thenResolve();
+          await pingCommand.doCommand(mockedMessageInstance);
 
-        await pingCommand.doCommand(mockedMessageInstance);
-
-        verify(mockedTextChannelClass
-            .send('<@!333>, ping! From <@!111>')).once();
-      });
-
-
-  it('doCommand: for message "ping --badflag": replies with parse error',
-      async () => {
-        mockedMessageInstance.content = 'ping --badflag';
-        mockedAuthorUserInstance.username = 'username';
-
-        when(mockedMessageClass.reply(mockedMessageInstance))
-            .thenResolve(mockedMessageInstance);
-
-        await pingCommand.doCommand(mockedMessageInstance);
-
-        // TODO(M): Consider requiring exact string.
-        verify(mockedMessageClass.reply(anyString())).once();
-      });
+          // TODO(M): Consider requiring exact string.
+          verify(mockedMessageClass.reply(anyString())).once();
+          const [replyMessage] = capture(mockedMessageClass.reply).last();
+          expect(replyMessage).to.contain('Unable to parse');
+        });
 
 
-  it('doCommand: for message "ping a lot of words to parse"' +
-  ': replies with parse error',
-  async () => {
-    mockedMessageInstance.content = 'ping a lot of words to parse';
-    mockedAuthorUserInstance.username = 'username';
+    it('"ping a lot of words to parse" => error parsing',
+        async () => {
+          mockedMessageInstance.content = 'ping a lot of words to parse';
+          mockedAuthorUserInstance.username = 'username';
 
-    when(mockedMessageClass.reply(mockedMessageInstance))
-        .thenResolve(mockedMessageInstance);
+          when(mockedMessageClass.reply(mockedMessageInstance))
+              .thenResolve(mockedMessageInstance);
 
-    await pingCommand.doCommand(mockedMessageInstance);
+          await pingCommand.doCommand(mockedMessageInstance);
 
-    // TODO(M): Consider requiring exact string.
-    verify(mockedMessageClass.reply(anyString())).once();
+          // TODO(M): Consider requiring exact string.
+          verify(mockedMessageClass.reply(anyString())).once();
+          const [replyMessage] = capture(mockedMessageClass.reply).last();
+          expect(replyMessage).to.contain('Unable to parse');
+        });
   });
 });

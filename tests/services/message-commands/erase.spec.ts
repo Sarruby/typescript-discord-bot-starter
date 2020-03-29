@@ -57,112 +57,101 @@ describe('EraseCommand', () => {
     eraseCommand = new EraseCommand(mockedClientInstance);
   });
 
-  it('doCommand: for message "erase --number 3": erases 3',
-      async () => {
-        mockedMessageInstance.content = 'erase --number 3';
 
-        when(mockedTextChannelClass.bulkDelete(anything()))
-            .thenResolve(new Collection<string, Message>());
+  describe('Correct Usage + Successful API calls', () => {
+    it('"erase --number 3" => erases 3',
+        async () => {
+          mockedMessageInstance.content = 'erase --number 3';
 
-        await eraseCommand.doCommand(mockedMessageInstance);
+          when(mockedTextChannelClass.bulkDelete(anything()))
+              .thenResolve(new Collection<string, Message>());
 
-        verify(mockedTextChannelClass.bulkDelete(3)).once();
-      });
+          await eraseCommand.doCommand(mockedMessageInstance);
 
-  it('doCommand: for message "erase --number tree": replies with parse error',
-      async () => {
-        mockedMessageInstance.content = 'erase --number tree';
-
-        when(mockedMessageClass.reply(mockedMessageInstance))
-            .thenResolve(mockedMessageInstance);
-
-        await eraseCommand.doCommand(mockedMessageInstance);
-
-        // TODO(M): Consider requiring exact string.
-        verify(mockedMessageClass.reply(anyString())).once();
-
-        verify(mockedTextChannelClass.bulkDelete(anything())).never();
-
-        const [replyMessage] = capture(mockedMessageClass.reply).last();
-        expect(replyMessage).to.contain('--number is not a number');
-      });
-
-
-  it('doCommand: for message "erase": replies with parse error',
-      async () => {
-        mockedMessageInstance.content = 'erase';
-        mockedAuthorUserInstance.username = 'username';
-
-        when(mockedMessageClass.reply(mockedMessageInstance))
-            .thenResolve(mockedMessageInstance);
-
-        await eraseCommand.doCommand(mockedMessageInstance);
-
-        verify(mockedMessageClass.reply(anyString())).once();
-        const [replyMessage] = capture(mockedMessageClass.reply).last();
-        expect(replyMessage).to.contain('Number to delete is required');
-      });
-
-  it('doCommand: for message "erase --number": replies with parse error',
-      async () => {
-        mockedMessageInstance.content = 'erase --number';
-        mockedAuthorUserInstance.username = 'username';
-
-        when(mockedMessageClass.reply(mockedMessageInstance))
-            .thenResolve(mockedMessageInstance);
-
-        await eraseCommand.doCommand(mockedMessageInstance);
-
-        verify(mockedMessageClass.reply(anyString())).once();
-        const [replyMessage] = capture(mockedMessageClass.reply).last();
-        expect(replyMessage).to.contain('Number to delete is required');
-      });
-
-
-  it('doCommand: for message "erase --number 3 --channel general":' +
-  'erases 3 from general',
-  async () => {
-    mockedMessageInstance.content = 'erase --number 3 --channel general';
-
-    await eraseCommand.doCommand(mockedMessageInstance)
-        .then((_message:Message | Message[]) => {
-          expect.fail(); // Expecting a failure!
-        }).catch((error:any) => {
-          expect(error).is.not.null;
-          expect(error instanceof Error).is.true;
+          verify(mockedTextChannelClass.bulkDelete(3)).once();
         });
 
-    verify(mockedTextChannelClass.bulkDelete(3)).once();
+
+    it('"erase --number 3 --channel general" => erases 3 from general',
+        async () => {
+          mockedMessageInstance.content = 'erase --number 3 --channel general';
+
+          await eraseCommand.doCommand(mockedMessageInstance)
+              .then((_message:Message | Message[]) => {
+                expect.fail(); // Expecting a failure!
+              }).catch((error:any) => {
+                expect(error).is.not.null;
+                expect(error instanceof Error).is.true;
+              });
+
+          verify(mockedTextChannelClass.bulkDelete(3)).once();
+        });
   });
 
-  it('doCommand: for message "erase --number 3 --channel none":' +
-  'replies with parse error',
-  async () => {
-    mockedMessageInstance.content = 'erase --number 3 --channel none';
 
-    when(mockedMessageClass.reply(mockedMessageInstance))
-        .thenResolve(mockedMessageInstance);
+  describe('Incorrect Usage + Successful API calls', () => {
+    beforeEach(() => {
+      when(mockedMessageClass.reply(mockedMessageInstance))
+          .thenResolve(mockedMessageInstance);
+    });
 
-    await eraseCommand.doCommand(mockedMessageInstance);
+    afterEach(() => {
+      verify(mockedMessageClass.reply(anyString())).once();
+      // Both the current channel and the guild channel are of this class,
+      // so this check checks both channels are never called.
+      verify(mockedTextChannelClass.bulkDelete(anything())).never();
+    });
 
-    verify(mockedMessageClass.reply(anyString())).once();
-    const [replyMessage] = capture(mockedMessageClass.reply).last();
-    expect(replyMessage).to.contain('Channel not found');
-    verify(mockedTextChannelClass.bulkDelete(anything())).never();
-  });
+    it('"erase --number tree" => error NaN',
+        async () => {
+          mockedMessageInstance.content = 'erase --number tree';
 
-  it('doCommand: for message "erase --number 3 --channel": ' +
-  'replies with parse error',
-  async () => {
-    mockedMessageInstance.content = 'erase --number 3 --channel';
+          await eraseCommand.doCommand(mockedMessageInstance);
 
-    when(mockedMessageClass.reply(mockedMessageInstance))
-        .thenResolve(mockedMessageInstance);
+          const [replyMessage] = capture(mockedMessageClass.reply).last();
+          expect(replyMessage).to.contain('--number is not a number');
+        });
 
-    await eraseCommand.doCommand(mockedMessageInstance);
+    it('"erase" => error requires --number',
+        async () => {
+          mockedMessageInstance.content = 'erase';
+          mockedAuthorUserInstance.username = 'username';
 
-    verify(mockedMessageClass.reply(anyString())).once();
-    const [replyMessage] = capture(mockedMessageClass.reply).last();
-    expect(replyMessage).to.contain('--channel requires you specify a channel');
+          await eraseCommand.doCommand(mockedMessageInstance);
+
+          const [replyMessage] = capture(mockedMessageClass.reply).last();
+          expect(replyMessage).to.contain('Number to delete is required');
+        });
+
+    it('"erase --number" => error requires --number',
+        async () => {
+          mockedMessageInstance.content = 'erase --number';
+
+          await eraseCommand.doCommand(mockedMessageInstance);
+
+          const [replyMessage] = capture(mockedMessageClass.reply).last();
+          expect(replyMessage).to.contain('Number to delete is required');
+        });
+
+
+    it('"erase --number 3 --channel none" => error not found',
+        async () => {
+          mockedMessageInstance.content = 'erase --number 3 --channel none';
+
+          await eraseCommand.doCommand(mockedMessageInstance);
+
+          const [replyMessage] = capture(mockedMessageClass.reply).last();
+          expect(replyMessage).to.contain('Channel not found');
+        });
+
+    it('"erase --number 3 --channel" => error not specified',
+        async () => {
+          mockedMessageInstance.content = 'erase --number 3 --channel';
+
+          await eraseCommand.doCommand(mockedMessageInstance);
+
+          const [replyMessage] = capture(mockedMessageClass.reply).last();
+          expect(replyMessage).to.contain('--channel requires you specify');
+        });
   });
 });

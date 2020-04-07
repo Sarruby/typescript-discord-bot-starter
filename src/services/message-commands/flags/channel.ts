@@ -1,8 +1,13 @@
 // eslint-disable-next-line no-unused-vars
+import {OptionDefinition} from 'command-line-args';
+// eslint-disable-next-line no-unused-vars
 import {Message, TextChannel, DMChannel, Guild,
 // eslint-disable-next-line no-unused-vars
   GuildChannelManager} from 'discord.js';
 import {FlagCommandError, FlagErrorType} from '../flag-command-error';
+
+// OptionDefinition is a type, not a class or something...
+export const channelOption:OptionDefinition = {name: 'channel', type: String};
 
 /**
   * Find the channel specified, or return "console" when none.

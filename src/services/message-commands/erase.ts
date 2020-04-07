@@ -8,14 +8,14 @@ import {OptionDefinition, CommandLineOptions} from 'command-line-args';
 import {injectable, inject} from 'inversify';
 import {TYPES} from '../../types';
 import {FlagCommandError, FlagErrorType} from './flag-command-error';
-import {parseChannel} from './flags/channel';
+import {parseChannel, channelOption} from './flags/channel';
 
 @injectable()
 /** PingFinder. */
 export class EraseCommand extends FlagCommandBase {
   flagOptions: OptionDefinition[] = [
     {name: 'number', type: Number},
-    {name: 'channel', type: String},
+    channelOption,
   ];
   usage:string = '`erase --number <number> [--channel <channel name>]`'+
     'Deletes messages.';

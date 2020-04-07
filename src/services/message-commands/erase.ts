@@ -8,6 +8,7 @@ import {OptionDefinition, CommandLineOptions} from 'command-line-args';
 import {injectable, inject} from 'inversify';
 import {TYPES} from '../../types';
 import {FlagCommandError, FlagErrorType} from './flag-command-error';
+import {parseChannel} from './flags/channel';
 
 @injectable()
 /** PingFinder. */
@@ -45,51 +46,6 @@ export class EraseCommand extends FlagCommandBase {
   }
 
   /**
-    * Find the channel specified, or return "console" when none.
-    * Throws error to catch bad flag input.
-    * @param {any} optionsChannel - Whatever came out of options.<flag name>
-    * @param {Message} message - The message.
-    * @return {any} - Some channel.
-    */
-  private parseChannel(optionsChannel:any,
-      message:Message): TextChannel | DMChannel {
-    const channelName:string = optionsChannel;
-    // null means the command did not have the flag OR the flag had nothing
-    // after it. We have to check if the flag was added with no input, Like
-    // "erase --number 3 --channel".
-    if (channelName == null) {
-      if (message.content.search('--channel') >= 0) {
-        throw new FlagCommandError('Using --channel requires you specify ' +
-        'a channel too!',
-        FlagErrorType.USER_ERROR);
-      }
-      return message.channel;
-    }
-    if (channelName == '') {
-      throw new FlagCommandError('Channel not specified!',
-          FlagErrorType.USER_ERROR);
-    }
-    const guild:Guild | null = message.guild;
-    if (guild == null) {
-      throw new FlagCommandError('No guild detected.', FlagErrorType.BOT_ERROR);
-    }
-    const channels:GuildChannelManager = guild.channels;
-    const cache = channels.cache;
-    const channelToDeleteFrom:any = cache.find((channel)=> {
-      return channel.name == channelName;
-    });
-    if (channelToDeleteFrom == null) {
-      throw new FlagCommandError('Channel not found!',
-          FlagErrorType.USER_ERROR);
-    }
-    if (!(typeof channelToDeleteFrom.bulkDelete == 'function')) {
-      throw new FlagCommandError('No bulkDelete function on channel!',
-          FlagErrorType.BOT_ERROR);
-    }
-    return channelToDeleteFrom;
-  }
-
-  /**
     * Pong author or ping other user.
     * @param {Message} message - Incoming message.
     * @param {CommandLineOptions} options - if flag "user" provided, that.
@@ -104,7 +60,7 @@ export class EraseCommand extends FlagCommandBase {
     }
     const numberToDelete:number = this.parseNumber(options.number);
     const channelToDeleteFrom:TextChannel | DMChannel =
-      this.parseChannel(options.channel, message);
+      parseChannel(options.channel, message);
     if (channelToDeleteFrom == null) {
       // Not found
       throw new FlagCommandError('Channel not found unexpectedly!',

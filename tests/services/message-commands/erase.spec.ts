@@ -148,6 +148,17 @@ describe('EraseCommand', () => {
           expect(replyMessage).to.contain('Channel not found');
         });
 
+
+    it('"erase --number 3 --channel 4" => error not found',
+        async () => {
+          mockedMessageInstance.content = 'erase --number 3 --channel 4';
+
+          await eraseCommand.doCommand(mockedMessageInstance);
+
+          const [replyMessage] = capture(mockedMessageClass.reply).last();
+          expect(replyMessage).to.contain('Channel not found');
+        });
+
     it('"erase --number 3 --channel" => error not specified',
         async () => {
           mockedMessageInstance.content = 'erase --number 3 --channel';
